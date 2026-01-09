@@ -75,6 +75,4 @@ app.post("/transcribe", upload.single("audio"), (req, res) => {
 /**
  * 🚀 Start server
  */
-app.listen(PORT, "192.168.0.107", () => {
-  console.log(`✅ Local Whisper backend running at http://192.168.0.107:${PORT}`);
-});
+app.listen();
