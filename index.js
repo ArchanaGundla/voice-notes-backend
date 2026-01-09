@@ -10,19 +10,20 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 
+// Health check (important for Render)
+app.get("/", (req, res) => {
+  res.send("✅ Voice Notes Backend is running");
+});
+
 // Ensure uploads folder exists
 const uploadDir = "uploads";
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
 }
 
-/**
- * ✅ Multer storage with file extension preserved
- */
+// Multer storage
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
+  destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname) || ".wav";
     cb(null, `audio_${Date.now()}${ext}`);
@@ -31,48 +32,44 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-/**
- * 🎤 Transcription API
- */
+// Transcription API
 app.post("/transcribe", upload.single("audio"), (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: "No audio file uploaded" });
-    }
+  if (!req.file) {
+    return res.status(400).json({ error: "No audio file uploaded" });
+  }
 
-    const audioPath = req.file.path;
-    console.log("🎤 Audio received:", audioPath);
+  const audioPath = req.file.path;
+  console.log("🎤 Audio received:", audioPath);
 
-    // IMPORTANT: use Python 3.11 explicitly
-    const command = `python3 run_whisper.py "${audioPath}"`;
+  const command = `python3 run_whisper.py "${audioPath}"`;
 
-    exec(command, (error, stdout, stderr) => {
+  exec(
+    command,
+    { maxBuffer: 1024 * 1024 * 10 }, // 10MB buffer
+    (error, stdout, stderr) => {
+      // Cleanup uploaded file
+      fs.unlink(audioPath, () => {});
+
       if (error) {
-        console.error("Whisper execution error:", error);
-        console.error("stderr:", stderr);
+        console.error("Whisper error:", stderr);
         return res.status(500).json({ error: "Whisper transcription failed" });
       }
 
       try {
         const result = JSON.parse(stdout);
-
         res.json({
           text: result.text,
           language: result.language,
-          file: path.basename(audioPath),
         });
-      } catch (parseError) {
-        console.error("Failed to parse Whisper output:", stdout);
+      } catch (err) {
+        console.error("Invalid Whisper output:", stdout);
         res.status(500).json({ error: "Invalid Whisper output" });
       }
-    });
-  } catch (err) {
-    console.error("Server error:", err);
-    res.status(500).json({ error: "Server error" });
-  }
+    }
+  );
 });
 
-/**
- * 🚀 Start server
- */
-app.listen(PORT);
+// Start server
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
