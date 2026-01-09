@@ -7,7 +7,7 @@ os.environ["PATH"] += os.pathsep + r"C:\ffmpeg-8.0.1-essentials_build\bin"
 import whisper
 
 # Better model for Hindi & Indian languages
-model = whisper.load_model("small")
+model = whisper.load_model("tiny")
 
 audio_path = sys.argv[1]
 
