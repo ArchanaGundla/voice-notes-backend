@@ -6,7 +6,7 @@ import fs from "fs";
 import path from "path";
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 
@@ -75,4 +75,4 @@ app.post("/transcribe", upload.single("audio"), (req, res) => {
 /**
  * 🚀 Start server
  */
-app.listen();
+app.listen(PORT);
