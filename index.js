@@ -44,7 +44,7 @@ app.post("/transcribe", upload.single("audio"), (req, res) => {
     console.log("🎤 Audio received:", audioPath);
 
     // IMPORTANT: use Python 3.11 explicitly
-    const command = `py -3.11 run_whisper.py "${audioPath}"`;
+    const command = `python3 run_whisper.py "${audioPath}"`;
 
     exec(command, (error, stdout, stderr) => {
       if (error) {
