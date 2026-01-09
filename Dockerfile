@@ -11,12 +11,12 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
-COPY requirements.txt .
-RUN pip3 install --no-cache-dir --break-system-packages \
-    torch \
-    openai-whisper \
-    numpy \
-    ffmpeg-python
+# Install CPU-only PyTorch
+RUN pip3 install --no-cache-dir \
+    torch --index-url https://download.pytorch.org/whl/cpu
+
+# Install Whisper
+RUN pip3 install --no-cache-dir openai-whisper
 
 COPY . .
 
