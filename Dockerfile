@@ -11,12 +11,12 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
-# Install CPU-only PyTorch
-RUN pip3 install --no-cache-dir \
+# CPU-only PyTorch (NO CUDA)
+RUN pip3 install --no-cache-dir --break-system-packages \
     torch --index-url https://download.pytorch.org/whl/cpu
 
-# Install Whisper
-RUN pip3 install --no-cache-dir openai-whisper
+# Whisper
+RUN pip3 install --no-cache-dir --break-system-packages openai-whisper
 
 COPY . .
 
